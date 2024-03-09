@@ -1,10 +1,10 @@
 package model
 
 import (
+	"cloud.google.com/go/datastore"
 	"errors"
 	"fmt"
 	"golang.org/x/net/context"
-	"google.golang.org/appengine/v2/datastore"
 	"google.golang.org/appengine/v2/log"
 	"google.golang.org/appengine/v2/memcache"
 	"reflect"
@@ -85,7 +85,8 @@ func readMulti(ctx context.Context, dst interface{}) error {
 	di := destination.Interface()
 	// we retrieved everything from memcache, no need to call datastore
 	if len(keys) > 0 {
-		err := datastore.GetMulti(ctx, keys, di)
+		client := ClientFromContext(ctx)
+		err := client.GetMulti(ctx, keys, di)
 
 		if err != nil {
 			return err

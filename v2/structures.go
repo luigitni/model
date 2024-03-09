@@ -1,6 +1,7 @@
 package model
 
 import (
+	"cloud.google.com/go/datastore"
 	"encoding/gob"
 	"errors"
 	"fmt"
@@ -8,14 +9,11 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"google.golang.org/appengine/v2"
-	"google.golang.org/appengine/v2/datastore"
 )
 
-// Define special reflect.Type
+//Define special reflect.Type
 var (
-	typeOfGeoPoint  = reflect.TypeOf(appengine.GeoPoint{})
+	typeOfGeoPoint  = reflect.TypeOf(datastore.GeoPoint{})
 	typeOfTime      = reflect.TypeOf(time.Time{})
 	typeOfModel     = reflect.TypeOf(Model{})
 	typeOfModelable = reflect.TypeOf((*modelable)(nil)).Elem()
@@ -23,8 +21,8 @@ var (
 	typeOfPLS       = reflect.TypeOf((*datastore.PropertyLoadSaver)(nil)).Elem()
 )
 
-// struct value represent a struct that internally can map other structs
-// fieldIndex is the index of the struct
+//struct value represent a struct that internally can map other structs
+//fieldIndex is the index of the struct
 type encodedField struct {
 	index       int
 	childStruct *encodedStruct
@@ -53,8 +51,8 @@ func newEncodedStruct(name string) *encodedStruct {
 	return &encodedStruct{structName: name, fieldNames: mp, referencesIdx: ri, extensionsIdx: ei}
 }
 
-// Keeps track of encoded structs according to their reflect.Type.
-// It is used as a cache to avoid to map structs that have been already mapped
+//Keeps track of encoded structs according to their reflect.Type.
+//It is used as a cache to avoid to map structs that have been already mapped
 var encodedStructsMutex sync.Mutex
 var encodedStructs = map[reflect.Type]*encodedStruct{}
 
@@ -93,8 +91,8 @@ func containsTag(tags []string, value string) string {
 	return ""
 }
 
-// maps a structure into a linked list representation of its fields.
-// It is used to ease the conversion between the Model framework and the datastore
+//maps a structure into a linked list representation of its fields.
+//It is used to ease the conversion between the Model framework and the datastore
 func mapStructureLocked(t reflect.Type, s *encodedStruct) {
 	if t == typeOfModel || t == typeOfStructure {
 		return
@@ -221,9 +219,8 @@ func encodeStruct(name string, s interface{}, props *[]datastore.Property, multi
 
 		v := value.FieldByName(field.Name)
 		p := &datastore.Property{}
-		p.Multiple = multiple
 
-		if p.Multiple {
+		if multiple {
 			p.NoIndex = true
 		}
 
@@ -231,11 +228,9 @@ func encodeStruct(name string, s interface{}, props *[]datastore.Property, multi
 		switch x := v.Interface().(type) {
 		case time.Time:
 			p.Value = x
-		case appengine.BlobKey:
+		case datastore.GeoPoint:
 			p.Value = x
-		case appengine.GeoPoint:
-			p.Value = x
-		case datastore.ByteString:
+		case []byte:
 			p.Value = x
 		default:
 			switch v.Kind() {
@@ -248,7 +243,6 @@ func encodeStruct(name string, s interface{}, props *[]datastore.Property, multi
 			case reflect.Float32, reflect.Float64:
 				p.Value = v.Float()
 			case reflect.Slice:
-				p.Multiple = true
 				if v.Type().Elem().Kind() != reflect.Uint8 {
 					if val, ok := codec.fieldNames[field.Name]; ok {
 						for j := 0; j < v.Len(); j++ {
@@ -268,7 +262,7 @@ func encodeStruct(name string, s interface{}, props *[]datastore.Property, multi
 
 				if val, ok := codec.fieldNames[p.Name]; ok {
 					if nil != val.childStruct {
-						if err := encodeStruct(val.childStruct.structName, v.Addr().Interface(), props, p.Multiple, val.childStruct); err != nil {
+						if err := encodeStruct(val.childStruct.structName, v.Addr().Interface(), props, multiple, val.childStruct); err != nil {
 							panic(err)
 						}
 						continue
@@ -328,7 +322,6 @@ type propertyLoader struct {
 	mem map[string]int
 }
 
-// parentEncodedField represents a field of interface{} s
 func decodeStruct(s reflect.Value, p datastore.Property, encodedField encodedField, l *propertyLoader) error {
 	interf := s
 	if s.Kind() == reflect.Ptr || s.Kind() == reflect.Interface {
@@ -370,7 +363,7 @@ func decodeStruct(s reflect.Value, p datastore.Property, encodedField encodedFie
 			}
 			field.Set(reflect.ValueOf(x))
 		case typeOfGeoPoint:
-			x, ok := p.Value.(appengine.GeoPoint)
+			x, ok := p.Value.(datastore.GeoPoint)
 			if !ok && p.Value != nil {
 				return errors.New("error - invalid geoPoint type")
 			}
@@ -398,14 +391,8 @@ func decodeStruct(s reflect.Value, p datastore.Property, encodedField encodedFie
 
 		x, ok := p.Value.([]byte)
 		if !ok {
-			if y, yok := p.Value.(datastore.ByteString); yok {
-				x, ok = []byte(y), true
-			}
-		}
-		if !ok && p.Value != nil {
-			//if it's a struct slice
-			if !p.Multiple {
-				return errors.New("error - invalid slice. Can only support byte slices (Bytestrings)")
+			if y, yok := p.Value.([]byte); yok {
+				x, ok = y, true
 			}
 		}
 
@@ -426,7 +413,7 @@ func decodeStruct(s reflect.Value, p datastore.Property, encodedField encodedFie
 						return err
 					}
 				}
-				//else go down one level
+
 				cName := childName(p.Name)
 				if attr, ok := encodedField.childStruct.fieldNames[cName]; ok {
 					if err := decodeStruct(field.Index(index), p, attr, l); err != nil {
@@ -475,9 +462,7 @@ func decodeField(field reflect.Value, p datastore.Property) error {
 		field.SetBool(x)
 	case reflect.String:
 		switch x := p.Value.(type) {
-		case appengine.BlobKey:
-			field.SetString(string(x))
-		case datastore.ByteString:
+		case []byte:
 			field.SetString(string(x))
 		case string:
 			field.SetString(x)
@@ -517,7 +502,7 @@ func referenceName(parentName string, refName string) string {
 	return fmt.Sprintf("%s.%s", parentName, refName)
 }
 
-// takes a property field name and returns it's base
+//takes a property field name and returns it's base
 func baseName(name string) string {
 	//get the last index of the separator
 	lastIndex := strings.LastIndex(name, valSeparator)
@@ -587,11 +572,9 @@ func toPropertyList(modelable modelable) ([]datastore.Property, error) {
 		switch x := v.Interface().(type) {
 		case time.Time:
 			p.Value = x
-		case appengine.BlobKey:
+		case datastore.GeoPoint:
 			p.Value = x
-		case appengine.GeoPoint:
-			p.Value = x
-		case datastore.ByteString:
+		case []byte:
 			p.Value = x
 		case *datastore.Key:
 			p.Value = x
@@ -658,7 +641,6 @@ func toPropertyList(modelable modelable) ([]datastore.Property, error) {
 						//todo: improve code
 						for j := 0; j < v.Len(); j++ {
 							sp := datastore.Property{}
-							sp.Multiple = true
 							sp.Name = p.Name
 							sp.NoIndex = true
 							//get the element at address j
@@ -666,11 +648,9 @@ func toPropertyList(modelable modelable) ([]datastore.Property, error) {
 							switch svi := sv.Interface().(type) {
 							case time.Time:
 								sp.Value = svi
-							case appengine.BlobKey:
+							case datastore.GeoPoint:
 								sp.Value = svi
-							case appengine.GeoPoint:
-								sp.Value = svi
-							case datastore.ByteString:
+							case []byte:
 								sp.Value = svi
 							case *datastore.Key:
 								sp.Value = svi
@@ -693,8 +673,6 @@ func toPropertyList(modelable modelable) ([]datastore.Property, error) {
 					}
 				}
 
-				//if we have a byteslice:
-				p.Multiple = true
 				p.NoIndex = true
 				p.Value = v.Bytes()
 			case reflect.Struct:

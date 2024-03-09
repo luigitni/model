@@ -1,8 +1,8 @@
 package model
 
 import (
-	"golang.org/x/net/context"
-	"google.golang.org/appengine/v2/datastore"
+	"cloud.google.com/go/datastore"
+	"context"
 	"google.golang.org/appengine/v2/memcache"
 	//"log"
 	"fmt"
