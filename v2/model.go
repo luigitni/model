@@ -29,8 +29,8 @@ type modelable interface {
 	setModel(m Model)
 }
 
-// represents a child struct modelable.
-// reference.Key and Modelable.getModel().Key might differ
+//represents a child struct modelable.
+//reference.Key and Modelable.getModel().Key might differ
 type reference struct {
 	// parent's index of reference field
 	idx       int
@@ -107,8 +107,8 @@ func (model Model) isRegistered() bool {
 	return true
 }
 
-// Loads values from the datastore for the entity with the given id.
-// Entity types must be the same with m and the entity whose id is id
+//Loads values from the datastore for the entity with the given id.
+//Entity types must be the same with m and the entity whose id is id
 func FromIntID(ctx context.Context, m modelable, id int64, ancestor modelable) error {
 	model := m.getModel()
 	if !model.isRegistered() {
@@ -128,8 +128,8 @@ func FromIntID(ctx context.Context, m modelable, id int64, ancestor modelable) e
 	return Read(ctx, m)
 }
 
-// Loads values from the datastore for the entity with the given string id.
-// Entity types must be the same with m and the entity whos id is id
+//Loads values from the datastore for the entity with the given string id.
+//Entity types must be the same with m and the entity whos id is id
 func FromStringID(ctx context.Context, m modelable, id string, ancestor modelable) error {
 	model := m.getModel()
 	if !model.isRegistered() {
@@ -163,8 +163,8 @@ func FromEncodedKey(ctx context.Context, m modelable, skey string) error {
 	return Read(ctx, m)
 }
 
-// returns -1 if the model doesn't have an id
-// returns the id of the model otherwise
+//returns -1 if the model doesn't have an id
+//returns the id of the model otherwise
 func (model Model) IntID() int64 {
 	if model.Key == nil {
 		return -1
@@ -180,7 +180,7 @@ func (model Model) StringID() string {
 	return model.Key.Name
 }
 
-// Returns the name of the modelable this model refers to
+//Returns the name of the modelable this model refers to
 func (model Model) Name() string {
 	return model.structName
 }

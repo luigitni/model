@@ -1,12 +1,12 @@
 package model
 
 import (
-	"cloud.google.com/go/datastore"
 	"context"
-	"google.golang.org/appengine/memcache"
-	//"log"
 	"fmt"
 	"reflect"
+
+	"cloud.google.com/go/datastore"
+	"google.golang.org/appengine/v2/memcache"
 )
 
 type KeyMap map[int]string

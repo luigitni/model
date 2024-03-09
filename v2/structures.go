@@ -1,6 +1,7 @@
 package model
 
 import (
+	"cloud.google.com/go/datastore"
 	"encoding/gob"
 	"errors"
 	"fmt"
@@ -8,11 +9,9 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"cloud.google.com/go/datastore"
 )
 
-// Define special reflect.Type
+//Define special reflect.Type
 var (
 	typeOfGeoPoint  = reflect.TypeOf(datastore.GeoPoint{})
 	typeOfTime      = reflect.TypeOf(time.Time{})
@@ -22,8 +21,8 @@ var (
 	typeOfPLS       = reflect.TypeOf((*datastore.PropertyLoadSaver)(nil)).Elem()
 )
 
-// struct value represent a struct that internally can map other structs
-// fieldIndex is the index of the struct
+//struct value represent a struct that internally can map other structs
+//fieldIndex is the index of the struct
 type encodedField struct {
 	index       int
 	childStruct *encodedStruct
@@ -52,8 +51,8 @@ func newEncodedStruct(name string) *encodedStruct {
 	return &encodedStruct{structName: name, fieldNames: mp, referencesIdx: ri, extensionsIdx: ei}
 }
 
-// Keeps track of encoded structs according to their reflect.Type.
-// It is used as a cache to avoid to map structs that have been already mapped
+//Keeps track of encoded structs according to their reflect.Type.
+//It is used as a cache to avoid to map structs that have been already mapped
 var encodedStructsMutex sync.Mutex
 var encodedStructs = map[reflect.Type]*encodedStruct{}
 
@@ -92,8 +91,8 @@ func containsTag(tags []string, value string) string {
 	return ""
 }
 
-// maps a structure into a linked list representation of its fields.
-// It is used to ease the conversion between the Model framework and the datastore
+//maps a structure into a linked list representation of its fields.
+//It is used to ease the conversion between the Model framework and the datastore
 func mapStructureLocked(t reflect.Type, s *encodedStruct) {
 	if t == typeOfModel || t == typeOfStructure {
 		return
@@ -503,7 +502,7 @@ func referenceName(parentName string, refName string) string {
 	return fmt.Sprintf("%s.%s", parentName, refName)
 }
 
-// takes a property field name and returns it's base
+//takes a property field name and returns it's base
 func baseName(name string) string {
 	//get the last index of the separator
 	lastIndex := strings.LastIndex(name, valSeparator)

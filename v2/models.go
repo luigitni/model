@@ -1,13 +1,14 @@
 package model
 
 import (
-	"cloud.google.com/go/datastore"
 	"errors"
 	"fmt"
-	"golang.org/x/net/context"
-	"google.golang.org/appengine/log"
-	"google.golang.org/appengine/memcache"
 	"reflect"
+
+	"cloud.google.com/go/datastore"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/v2/log"
+	"google.golang.org/appengine/v2/memcache"
 )
 
 // Batch version of Read.
