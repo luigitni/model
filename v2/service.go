@@ -1,10 +1,11 @@
 package model
 
 import (
-	"cloud.google.com/go/datastore"
 	"context"
 	"fmt"
 	"os"
+
+	"cloud.google.com/go/datastore"
 )
 
 const name = "__flamel_model_service"

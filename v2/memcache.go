@@ -1,12 +1,12 @@
 package model
 
 import (
-	"cloud.google.com/go/datastore"
 	"context"
-	"google.golang.org/appengine/v2/memcache"
-	//"log"
 	"fmt"
 	"reflect"
+
+	"cloud.google.com/go/datastore"
+	"google.golang.org/appengine/v2/memcache"
 )
 
 type KeyMap map[int]string
@@ -16,16 +16,16 @@ type cacheModel struct {
 	Keys      KeyMap
 }
 
-//checks if cache Key is valid
-//as per documentation Key max length is set at 250 bytes
+// checks if cache Key is valid
+// as per documentation Key max length is set at 250 bytes
 func validCacheKey(Key string) bool {
 	bs := []byte(Key)
 	valid := len(bs) <= 250
 	return valid
 }
 
-//Saves the modelable representation and all related references to memcache.
-//It assumes that there are no stale references
+// Saves the modelable representation and all related references to memcache.
+// It assumes that there are no stale references
 func saveInMemcache(ctx context.Context, m modelable) (err error) {
 	//skip unregistered models
 	model := m.getModel()
