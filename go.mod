@@ -1,7 +1,9 @@
 module github.com/decodica/model
 
 require (
-	golang.org/x/net v0.0.0-20220722155237-a158d28d115b
+	github.com/golang/protobuf v1.5.4 // indirect
+	github.com/google/go-cmp v0.6.0 // indirect
+	golang.org/x/net v0.22.0
 	google.golang.org/appengine/v2 v2.0.5
 )
 
