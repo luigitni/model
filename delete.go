@@ -1,23 +1,21 @@
 package model
 
 import (
+	"cloud.google.com/go/datastore"
 	"context"
 	"fmt"
-	"google.golang.org/appengine/v2/datastore"
-	"google.golang.org/appengine/v2/memcache"
+	"google.golang.org/appengine/memcache"
 	"reflect"
 )
 
 // recursively deletes a modelable and all its references
 func Clear(ctx context.Context, m modelable) (err error) {
 
-	opts := datastore.TransactionOptions{}
-	opts.Attempts = 1
-	opts.XG = true
-
-	err = datastore.RunInTransaction(ctx, func(ctx context.Context) error {
+	client := ClientFromContext(ctx)
+	opts := datastore.MaxAttempts(1)
+	_, err = client.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
 		return clear(ctx, m)
-	}, &opts)
+	}, opts)
 
 	if err == nil {
 		if err = deleteFromMemcache(ctx, m); err != nil && err != memcache.ErrCacheMiss {
@@ -47,8 +45,8 @@ func clear(ctx context.Context, m modelable) (err error) {
 			return err
 		}
 	}
-
-	err = datastore.Delete(ctx, model.Key)
+	client := ClientFromContext(ctx)
+	err = client.Delete(ctx, model.Key)
 
 	return err
 }
@@ -61,7 +59,8 @@ func Delete(ctx context.Context, ref modelable, parent modelable) (err error) {
 		return fmt.Errorf("reference %s has a nil key", child.Name())
 	}
 
-	err = datastore.Delete(ctx, child.Key)
+	client := ClientFromContext(ctx)
+	err = client.Delete(ctx, child.Key)
 	if err == nil {
 
 		if child.searchable {
@@ -100,7 +99,7 @@ func Delete(ctx context.Context, ref modelable, parent modelable) (err error) {
 	pv := reflect.ValueOf(parent).Elem()
 	pv.Field(idx).Set(reflect.ValueOf(newref).Elem())
 
-	_, err = datastore.Put(ctx, parent.getModel().Key, parent)
+	_, err = client.Put(ctx, parent.getModel().Key, parent)
 	if err != nil {
 		return err
 	}

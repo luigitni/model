@@ -1,10 +1,10 @@
 module github.com/luigitni/model
 
 require (
-	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
-	golang.org/x/net v0.22.0
-	google.golang.org/appengine/v2 v2.0.5
+	cloud.google.com/go/datastore v1.1.0
+	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
+	google.golang.org/api v0.24.0
+	google.golang.org/appengine v1.6.6
 )
 
 go 1.11
