@@ -12,10 +12,10 @@ import (
 
 type Entity struct {
 	Model
-	Name       string
-	Num        int
-	Child      Child
-	EmptyChild EmptyChild `model:"zero"`
+	Name          string
+	Num           int
+	Child         Child
+	EmptyChild    EmptyChild `model:"zero"`
 	ReadonlyChild `model:"readonly"`
 }
 
@@ -42,10 +42,10 @@ type ReadonlyChild struct {
 
 type ExtendedEntity struct {
 	Model
-	Name string
+	Name  string
 	Child Child
-	Ext interface{}
-	Pls *StructPLS
+	Ext   interface{}
+	Pls   *StructPLS
 }
 
 type ExtensionImpl struct {
@@ -254,7 +254,7 @@ func TestModelQuery(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(dst) != total - find - 1 {
+	if len(dst) != total-find-1 {
 		t.Fatalf("invalid number of data returned. Count is %d", len(dst))
 	}
 
@@ -327,7 +327,7 @@ func TestModelExtension(t *testing.T) {
 	entity.Ext = ext
 	entity.Name = "entity"
 	entity.Child.Name = "child"
-	entity.Pls = &StructPLS{PLSVal:"plspls"}
+	entity.Pls = &StructPLS{PLSVal: "plspls"}
 	err = Create(ctx, &entity)
 	if err != nil {
 		t.Fatal(err.Error())
@@ -372,7 +372,7 @@ func TestModelExtensionCached(t *testing.T) {
 	entity.Ext = ext
 	entity.Name = "entity"
 	entity.Child.Name = "child"
-	entity.Pls = &StructPLS{PLSVal:"plspls"}
+	entity.Pls = &StructPLS{PLSVal: "plspls"}
 	err = Create(ctx, &entity)
 	if err != nil {
 		t.Fatal(err.Error())

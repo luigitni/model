@@ -1,6 +1,6 @@
-module github.com/decodica/model/v2
+module github.com/luigitni/model/v2
 
-go 1.20
+go 1.21
 
 require (
 	cloud.google.com/go/datastore v1.1.0

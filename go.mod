@@ -1,4 +1,4 @@
-module github.com/decodica/model
+module github.com/luigitni/model
 
 require (
 	github.com/golang/protobuf v1.5.4 // indirect

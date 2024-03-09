@@ -33,7 +33,8 @@ func NewQuery(m modelable) *Query {
 	return &query
 }
 
-/**
+/*
+*
 Filter functions
 */
 func (q *Query) WithModelable(field string, ref modelable) *Query {
@@ -105,8 +106,8 @@ func (q *Query) Project(fields ...string) *Query {
 	return q
 }
 
-//Shorthand method to retrieve only the first entity satisfying the query
-//It is equivalent to a Get With limit 1
+// Shorthand method to retrieve only the first entity satisfying the query
+// It is equivalent to a Get With limit 1
 func (q *Query) First(ctx context.Context, m modelable) (err error) {
 	q.dq = q.dq.Limit(1)
 
@@ -308,7 +309,7 @@ func (query *Query) get(ctx context.Context, dst interface{}) (*datastore.Cursor
 	}
 }
 
-//container must be *[]modelable
+// container must be *[]modelable
 func isValidContainer(container reflect.Value) bool {
 	if container.Kind() != reflect.Ptr {
 		return false

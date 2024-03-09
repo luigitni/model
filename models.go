@@ -10,10 +10,10 @@ import (
 	"reflect"
 )
 
-//Batch version of Read.
-//Can't be run in a transaction because of too many entities group.
-//It can return a datastore multierror.
-//todo: EXPERIMENTAL - USE AT OWN RISK
+// Batch version of Read.
+// Can't be run in a transaction because of too many entities group.
+// It can return a datastore multierror.
+// todo: EXPERIMENTAL - USE AT OWN RISK
 func ReadMulti(ctx context.Context, dst interface{}) error {
 	return readMulti(ctx, dst)
 }
@@ -26,7 +26,7 @@ const (
 	store
 )
 
-//Batch version of read. It wraps datastore.GetMulti and adapts it to the modelable fwk
+// Batch version of read. It wraps datastore.GetMulti and adapts it to the modelable fwk
 func readMulti(ctx context.Context, dst interface{}) error {
 
 	collection := reflect.ValueOf(dst)
