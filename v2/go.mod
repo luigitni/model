@@ -5,6 +5,7 @@ go 1.21
 require (
 	cloud.google.com/go/datastore v1.15.0
 	golang.org/x/net v0.22.0
+	golang.org/x/sync v0.6.0
 	google.golang.org/api v0.169.0
 	google.golang.org/appengine/v2 v2.0.5
 )
@@ -29,7 +30,6 @@ require (
 	go.opentelemetry.io/otel/trace v1.24.0 // indirect
 	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/oauth2 v0.18.0 // indirect
-	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect

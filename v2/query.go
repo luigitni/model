@@ -320,6 +320,7 @@ func isValidContainer(container reflect.Value) bool {
 	if container.Kind() != reflect.Ptr {
 		return false
 	}
+
 	celv := container.Elem()
 	if celv.Kind() != reflect.Slice {
 		return false

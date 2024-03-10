@@ -2,18 +2,20 @@ package model
 
 import (
 	"bytes"
-	"cloud.google.com/go/datastore"
 	"context"
 	"fmt"
-	"google.golang.org/appengine/v2"
-	"google.golang.org/appengine/v2/search"
 	"reflect"
 	"strings"
 	"sync"
 	"time"
+
+	"cloud.google.com/go/datastore"
+	"golang.org/x/sync/errgroup"
+	"google.golang.org/appengine/v2"
+	"google.golang.org/appengine/v2/search"
 )
 
-//flag fields that we want to search with "prototype:search"
+// flag fields that we want to search with "prototype:search"
 const tagSearch string = "search"
 const tagAtom string = "atom"
 const tagHTML string = "HTML"
@@ -212,7 +214,35 @@ func SearchPutMulti(ctx context.Context, src interface{}) error {
 		name = mod.Name()
 	}
 
-	return searchPutMulti(ctx, models, name)
+	const maxItems = 200
+	const maxParallelIndexes = 50
+	// the search API only indexes max 200 items at a time
+	// so we need to paginate
+
+	min := func(i, j int) int {
+		if i < j {
+			return i
+		}
+
+		return j
+	}
+
+	eg, ctx := errgroup.WithContext(ctx)
+	eg.SetLimit(maxParallelIndexes)
+	for len(models) > 0 {
+		l := min(len(models), maxItems)
+		items := models[:l]
+		models = models[l:]
+		eg.Go(func() error {
+			return searchPutMulti(ctx, items, name)
+		})
+	}
+
+	if err := eg.Wait(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func searchPutMulti(ctx context.Context, models []*Model, name string) error {
@@ -227,8 +257,6 @@ func searchPutMulti(ctx context.Context, models []*Model, name string) error {
 	index, err := search.Open(name)
 
 	if err != nil {
-		panic(err)
-		recover()
 		return err
 	}
 
@@ -246,8 +274,8 @@ func searchDelete(ctx context.Context, model *Model, name string) error {
 	return index.Delete(ctx, model.EncodedKey())
 }
 
-//stays at nil -> ignores the struct datas and gets a key only query from datastore
-//which will load the struct with Read()
+// stays at nil -> ignores the struct datas and gets a key only query from datastore
+// which will load the struct with Read()
 func (model *searchable) Load(fields []search.Field, meta *search.DocumentMetadata) error {
 	return nil
 }
@@ -273,8 +301,8 @@ func (sq *searchQuery) SearchWith(query string) {
 	sq.query.WriteString(query)
 }
 
-//so far, op is the logical operation to use with the reference, i.e. AND, OR.
-//with reference is always an equality
+// so far, op is the logical operation to use with the reference, i.e. AND, OR.
+// with reference is always an equality
 func (sq *searchQuery) SearchWithModel(field string, ref modelable, op searchOp) {
 
 	// we have at least one query, append the operation to it
